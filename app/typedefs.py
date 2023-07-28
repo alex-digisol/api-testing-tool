@@ -17,7 +17,7 @@ class Methods(Enum):
 
 @dataclass
 class Project:
-    id: UUID
+    id: int
     name: str
     description: str
     # TODO: owner
@@ -26,8 +26,8 @@ class Project:
 
 @dataclass
 class Endpoint:
-    id: UUID
-    project_id: UUID
+    id: int
+    project_id: int
     method: Methods
     url: str
     name: str
@@ -38,18 +38,18 @@ class Endpoint:
 
 def generate_static_projects(length: int):
     for i in range(0, length):
-        yield asdict(Project(id=uuid4(), name=random_string(10), description=random_string(10), created_at=datetime.now()))
+        yield asdict(Project(id=random.random(), name=random_string(10), description=random_string(10), created_at=datetime.now()))
 
 
-def generate_endpoints(id: UUID, length: int) -> Endpoint:
+def generate_endpoints(id: int, length: int) -> Endpoint:
     for i in range(0, length):
         yield asdict(generate_endpoint(id))
 
 
-def generate_endpoint(id: UUID) -> Endpoint:
+def generate_endpoint(id: int) -> Endpoint:
     return Endpoint(
         id=id,
-        project_id=uuid4(),
+        project_id=random.random(),
         method=random.choice(list(Methods)),
         name=random_string(10),
         url=f"http://localhost:8000/api/v2/test/{random_string(10)}",

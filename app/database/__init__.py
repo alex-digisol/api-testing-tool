@@ -1,7 +1,7 @@
 import os
 import click
 from flask.cli import with_appcontext
-from flask import g, current_app
+from flask import g
 from datetime import datetime
 from sqlalchemy import (
     create_engine,
@@ -9,11 +9,12 @@ from sqlalchemy import (
     Connection,
     Table,
     Column,
-    BigInteger,
     Integer,
-    String,
     Text,
     DateTime,
+    ForeignKey,
+    CheckConstraint,
+    String
 )
 
 
@@ -24,12 +25,34 @@ metadata = MetaData()
 users = Table(
     "users",
     metadata,
-    Column("id", Integer(), primary_key=True),
+    Column("id", Integer(), primary_key=True, index=True),
     Column("name", Text(), index=True),
     Column("email", Text(), unique=True, index=True),
-    Column("profile_pic", Text()),
+    Column("profile_pic", Text(), nullable=True),
 )
 
+projects = Table(
+    "projects",
+    metadata,
+    Column("id", Integer(), primary_key=True, index=True),
+    Column("name", Text()),
+    Column("description", Text()),
+    Column("owner", Integer(), ForeignKey("users.id"), index=True),
+    Column("created_at", DateTime(), default=datetime.now),
+)
+
+endpoint = Table(
+    "endpoint",
+    metadata,
+    Column("id", Integer(), primary_key=True, index=True),
+    Column("project_id", Integer(), ForeignKey("users.id"), index=True),
+    Column("method", String(6)),
+    Column("url", Text()),
+    Column("name", Text()),
+    Column("description", Text()),
+    Column("created_at", DateTime(), default=datetime.now),
+    CheckConstraint("method IN ('GET', 'POST', 'PATCH', 'PUT', 'DELETE')", name='cc_method')
+)
 
 def get_db() -> Connection:
     if "db" not in g:
