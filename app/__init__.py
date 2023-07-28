@@ -45,4 +45,8 @@ def create_app() -> Flask:
     def error(e):
         return render_template("500.html")
 
+    @app.errorhandler(401)
+    def error(e):
+        return render_template("401.html")
+    
     return app

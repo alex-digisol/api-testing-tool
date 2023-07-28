@@ -1,16 +1,31 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="section">
-    <div class="container-fluid">
-        <h2>Project list</h2>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>Project list</h2>
+            {% if projects %}
+                <div class="list-group mb-3">
+                    {% for project in projects %}
+                    <a href="/projects/{{ project.id }}" class="list-group-item list-group-item-action" aria-current="true"> <!-- active-->
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ project.name }}</h5>
+                            <small>{{ project.created_at.strftime('%d %b, %Y') }}</small>
+                        </div>
+                        <small class="text-body-secondary">{{ project.description }}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-light" role="alert">No projects</div>
+            {% endif %}
 
-        <div>
-            <h2>Create project</h2>
-            <a href="/projects/"></a>
+            <hr>
+            <div>
+                <a class="btn btn-sm btn-success" href="/projects/create">Create Project</a>
+            </div>
         </div>
-
-
     </div>
-</section>
+</div>
 {% endblock %}
