@@ -1,0 +1,61 @@
+import os
+import click
+from flask.cli import with_appcontext
+from flask import g, current_app
+from datetime import datetime
+from sqlalchemy import (
+    create_engine,
+    MetaData,
+    Connection,
+    Table,
+    Column,
+    BigInteger,
+    Integer,
+    String,
+    Text,
+    DateTime,
+)
+
+
+engine = create_engine(os.getenv("DATABASE_URL"))
+
+metadata = MetaData()
+
+users = Table(
+    "users",
+    metadata,
+    Column("id", Integer(), primary_key=True),
+    Column("name", Text(), index=True),
+    Column("email", Text(), unique=True, index=True),
+    Column("profile_pic", Text()),
+)
+
+
+def get_db() -> Connection:
+    if "db" not in g:
+        g.db = engine.connect()
+    return g.db
+
+
+def close_db(e=None):
+    db = g.pop("db", None)
+
+    if db is not None:
+        db.close()
+
+
+def init_db():
+    metadata.create_all(bind=engine)
+
+
+@click.command("init-db")
+@with_appcontext
+def init_db_command():
+    """Clear the existing data and create new tables."""
+    init_db()
+    click.echo("Initialized the database.")
+
+
+def init_app(app):
+    app.teardown_appcontext(close_db)
+    app.cli.add_command(init_db_command)

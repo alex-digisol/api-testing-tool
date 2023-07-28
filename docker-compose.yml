@@ -1,0 +1,33 @@
+version: "3.7"
+
+volumes:
+  postgres_data:
+
+services:
+
+  # backend:
+  #   build: ./
+  #   container_name: blog_backend
+  #   command: python run.py
+  #   volumes:
+  #     - ./app/:/usr/src/app/app/
+  #   ports:
+  #     - 5000:5000
+  #   env_file:
+  #     - .env
+  #   restart: always
+  #   depends_on:
+  #     - postgres
+
+  postgres:
+    image: postgres:latest
+    container_name: blog_database
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+  
