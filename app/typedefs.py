@@ -1,6 +1,4 @@
 import random
-from uuid import uuid4, UUID
-from typing import Union
 from datetime import datetime
 from dataclasses import dataclass, asdict
 from app.utils import random_string

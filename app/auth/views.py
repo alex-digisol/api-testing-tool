@@ -1,23 +1,19 @@
 """
 Based on [Create a Flask Application With Google Login](https://realpython.com/flask-google-login/#creating-a-google-client) article
 """
+import os
 import requests
 import json
-from . import userbp, GOOGLE_DISCOVERY_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-from flask import current_app, redirect, request, url_for
-from app.userbp.user import User
-from flask_login import (
-    login_required,
-    login_user,
-    logout_user,
-)
-
+import jwt
+from . import auth, GOOGLE_DISCOVERY_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+from flask import current_app, jsonify, redirect, request, url_for, make_response, render_template
+from .user import User
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
 
 
-@userbp.route("/user/login")
+@auth.route("/google/login")
 def login():
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
@@ -26,10 +22,10 @@ def login():
         redirect_uri=request.base_url + "/callback",
         scope=["openid", "email", "profile"],
     )
-    return redirect(request_uri)
+    return jsonify({"link": request_uri})
 
 
-@userbp.route("/user/login/callback")
+@auth.route("/google/login/callback")
 def callback():
     code = request.args.get("code")
     client = current_app.config["client"]
@@ -61,21 +57,29 @@ def callback():
     else:
         return "User email not available or not verified by Google.", 400
 
-    user = User(name=users_name, email=users_email, profile_pic=picture)
-
     # Doesn't exist? Add it to the database.
     if not User.get(users_email):
         User.create(users_name, users_email, picture)
 
     # Begin user session by logging the user in
-    login_user(user)
+    # login_user(user)
 
-    # Send user back to homepage
-    return redirect(url_for("main.home"))
+    # Create jwt tokens
+    token = jwt.encode(
+        payload={
+            "email": users_email,
+            "role": "user"
+        },
+        key=os.getenv("SECRET_KEY")
+    )
+    cookie_name = 'your_cookie_name'
+    cookie_value = 'your_cookie_value'
+    response = make_response(redirect('http://localhost:4200', code=302))  # Replace with your Angular frontend URL
+    response.set_cookie(cookie_name, cookie_value)  # secure - cookie available only via https
+
+    return response
 
 
-@userbp.route("/user/logout")
-@login_required
+@auth.route("/user/logout")
 def logout():
-    logout_user()
     return redirect(url_for("main.home"))

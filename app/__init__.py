@@ -4,8 +4,8 @@ from flask import Flask,render_template
 from flask_login import LoginManager
 
 from .database import init_db
-from .userbp.user import User
-from .userbp import GOOGLE_CLIENT_ID
+from .auth.user import User
+from .auth import GOOGLE_CLIENT_ID
 
 
 def create_app() -> Flask:
@@ -25,8 +25,8 @@ def create_app() -> Flask:
         return User.get(email)  
 
     # Blueprints
-    from .userbp import userbp
-    app.register_blueprint(userbp)
+    from .auth import auth
+    app.register_blueprint(auth)
         
     from .projects import projects
     app.register_blueprint(projects)

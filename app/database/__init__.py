@@ -29,6 +29,9 @@ users = Table(
     Column("name", Text(), index=True),
     Column("email", Text(), unique=True, index=True),
     Column("profile_pic", Text(), nullable=True),
+    Column("password_hash", Text(), nullable=True),
+    Column("updated_at", DateTime(), onupdate=datetime.now, default=datetime.now),
+    Column("created_at", DateTime(), default=datetime.now),
 )
 
 projects = Table(
@@ -50,6 +53,7 @@ endpoint = Table(
     Column("url", Text()),
     Column("name", Text()),
     Column("description", Text()),
+    Column("updated_at", DateTime(), onupdate=datetime.now, default=datetime.now),
     Column("created_at", DateTime(), default=datetime.now),
     CheckConstraint("method IN ('GET', 'POST', 'PATCH', 'PUT', 'DELETE')", name='cc_method')
 )

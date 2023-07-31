@@ -8,4 +8,5 @@ from flask_login import login_required
 @main.route("/")
 @login_required
 def home():
-    return render_template("home/index.html", projects=generate_static_projects(5)), 200
+    # return render_template("home/index.html", projects=generate_static_projects(5)), 200
+    return render_template("main/index.html"), 200
