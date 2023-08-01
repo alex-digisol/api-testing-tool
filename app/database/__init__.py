@@ -22,6 +22,12 @@ engine = create_engine(os.getenv("DATABASE_URL"))
 
 metadata = MetaData()
 
+providers = Table(
+    "providers",
+    metadata,
+    Column("name", String(10), primary_key=True, index=True)
+)
+
 users = Table(
     "users",
     metadata,
@@ -32,6 +38,13 @@ users = Table(
     Column("password_hash", Text(), nullable=True),
     Column("updated_at", DateTime(), onupdate=datetime.now, default=datetime.now),
     Column("created_at", DateTime(), default=datetime.now),
+)
+
+user_providers = Table(
+    "user_providers",
+    metadata,
+    Column("user_id", Integer(), ForeignKey("users.id"), index=True),
+    Column("provider", String(10), ForeignKey("providers.name"), index=True),
 )
 
 projects = Table(

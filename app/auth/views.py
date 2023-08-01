@@ -6,8 +6,8 @@ import requests
 import json
 import jwt
 from . import auth, GOOGLE_DISCOVERY_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-from flask import current_app, jsonify, redirect, request, url_for, make_response, render_template
-from .user import User
+from flask import current_app, jsonify, redirect, request, make_response
+from .user_controller import UserController
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
@@ -17,7 +17,7 @@ def get_google_provider_cfg():
 def login():
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
-    request_uri = current_app.config["client"].prepare_request_uri(
+    request_uri = current_app.config["google_client"].prepare_request_uri(
         authorization_endpoint,
         redirect_uri=request.base_url + "/callback",
         scope=["openid", "email", "profile"],
@@ -28,7 +28,7 @@ def login():
 @auth.route("/google/login/callback")
 def callback():
     code = request.args.get("code")
-    client = current_app.config["client"]
+    client = current_app.config["google_client"]
     google_provider_cfg = get_google_provider_cfg()
     token_endpoint = google_provider_cfg["token_endpoint"]
     token_url, headers, body = client.prepare_token_request(
@@ -44,7 +44,7 @@ def callback():
         auth=(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET),
     )
 
-    # Parse the tokens!
+    # Parse the tokens
     client.parse_request_body_response(json.dumps(token_response.json()))
     userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
     uri, headers, body = client.add_token(userinfo_endpoint)
@@ -58,11 +58,8 @@ def callback():
         return "User email not available or not verified by Google.", 400
 
     # Doesn't exist? Add it to the database.
-    if not User.get(users_email):
-        User.create(users_name, users_email, picture)
-
-    # Begin user session by logging the user in
-    # login_user(user)
+    if not UserController.get(users_email):
+        UserController.create(users_name, users_email, picture, "google")
 
     # Create jwt tokens
     token = jwt.encode(
@@ -72,14 +69,13 @@ def callback():
         },
         key=os.getenv("SECRET_KEY")
     )
-    cookie_name = 'your_cookie_name'
-    cookie_value = 'your_cookie_value'
-    response = make_response(redirect('http://localhost:4200', code=302))  # Replace with your Angular frontend URL
-    response.set_cookie(cookie_name, cookie_value)  # secure - cookie available only via https
-
+    response = make_response(redirect('http://127.0.0.1:4200'))
+    response.set_cookie("auth", token, domain="127.0.0.1", httponly=True, secure=True)
     return response
 
 
-@auth.route("/user/logout")
+@auth.route("/logout")
 def logout():
-    return redirect(url_for("main.home"))
+    response = make_response(redirect('http://127.0.0.1:4200'))
+    response.set_cookie("auth", "", expires=0, domain="127.0.0.1", httponly=True, secure=True)
+    return response

@@ -1,10 +1,12 @@
 from flask_login import UserMixin
 
 from sqlalchemy import select, insert
-from app.database import get_db, users
+from app.database import get_db, users, user_providers
 
 
-class User(UserMixin):
+
+
+class UserController(UserMixin):
     def __init__(self, name, email, profile_pic):
         self.name = name
         self.email = email
@@ -25,16 +27,24 @@ class User(UserMixin):
         if not user:
             return None
 
-        user = User(name=user.name, email=user.email, profile_pic=user.profile_pic)
-        return user
+        return {
+            "name": user.name, 
+            "email": user.email, 
+            "profile_pic": user.profile_pic
+        }
 
     @staticmethod
-    def create(name, email, profile_pic):
+    def create(name, email, profile_pic, provider):
         db = get_db()
-        sql = insert(users).values(
+        q_user = insert(users).values(
             name=name,
             email=email,
             profile_pic=profile_pic,
         )
-        db.execute(sql)
+        result = db.execute(q_user)
+        q_provider = insert(user_providers).values(
+            user_id=result.inserted_primary_key[0],
+            provider=provider
+        )
+        result = db.execute(q_provider)
         db.commit()

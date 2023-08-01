@@ -13,4 +13,4 @@ GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configura
 
 
 from . import views
-from . import user
+from . import user_controller

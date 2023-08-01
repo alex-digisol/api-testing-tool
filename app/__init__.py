@@ -4,7 +4,6 @@ from flask import Flask,render_template
 from flask_login import LoginManager
 
 from .database import init_db
-from .auth.user import User
 from .auth import GOOGLE_CLIENT_ID
 
 
@@ -17,12 +16,9 @@ def create_app() -> Flask:
     login_manager = LoginManager()
     login_manager.init_app(app)
 
-    app.config["client"] = WebApplicationClient(GOOGLE_CLIENT_ID)
+    app.config["google_client"] = WebApplicationClient(GOOGLE_CLIENT_ID)
     # Flask-Login helper to retrieve a user from our db
 
-    @login_manager.user_loader
-    def load_user(email):
-        return User.get(email)  
 
     # Blueprints
     from .auth import auth
