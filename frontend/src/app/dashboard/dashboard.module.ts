@@ -9,11 +9,13 @@ import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { ProfileEffects } from './store/profile/profile.effects';
 import { reducers } from './store/reducers';
+import { HeaderComponent } from './ui/header/header.component';
 
 
 @NgModule({
     declarations: [
-        DashboardComponent
+        DashboardComponent,
+        HeaderComponent
     ],
     imports: [
         CommonModule,

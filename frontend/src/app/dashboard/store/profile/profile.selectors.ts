@@ -1,12 +1,15 @@
 import { createFeatureSelector, createSelector } from "@ngrx/store";
 import { ProfileState } from "./profile.reducer";
-
-export const selectAuthState = createFeatureSelector<ProfileState>("profile");
+import { selectState } from "../selectors";
+// export const selectAuthState = createFeatureSelector<ProfileState>("profile");
 
 export const selectProfile = createSelector(
-    selectAuthState,
-    profile => {
-        console.log(profile)
-        return profile.profile
-    }
+    selectState,
+    app => app.profile
+);
+
+
+export const selectProfileObj = createSelector(
+    selectProfile,
+    profile_obj => profile_obj.profile
 );
