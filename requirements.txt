@@ -4,5 +4,4 @@ SQLAlchemy
 requests
 oauthlib
 pyOpenSSL
-Flask-Login
 pyjwt[crypto]

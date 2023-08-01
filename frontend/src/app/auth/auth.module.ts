@@ -5,7 +5,6 @@ import { AuthRoutingModule } from './auth-routing.module';
 import { AuthComponent } from './auth.component';
 import { LoginComponent } from './login/login.component';
 import { AuthService } from './auth.service';
-import { ProfileComponent } from './profile/profile.component';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RegisterComponent } from './register/register.component';
 
@@ -14,7 +13,6 @@ import { RegisterComponent } from './register/register.component';
     declarations: [
         AuthComponent,
         LoginComponent,
-        ProfileComponent,
         RegisterComponent
     ],
     imports: [

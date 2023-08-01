@@ -5,15 +5,18 @@ import os
 import requests
 import json
 import jwt
+from datetime import datetime, timedelta, timezone
+from flask import current_app, jsonify, redirect, request, make_response, g
+from app.middlewares.auth import login_required
 from . import auth, GOOGLE_DISCOVERY_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
-from flask import current_app, jsonify, redirect, request, make_response
 from .user_controller import UserController
+
 
 def get_google_provider_cfg():
     return requests.get(GOOGLE_DISCOVERY_URL).json()
 
 
-@auth.route("/google/login")
+@auth.route("/google/login", methods=["GET"])
 def login():
     google_provider_cfg = get_google_provider_cfg()
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
@@ -25,7 +28,7 @@ def login():
     return jsonify({"link": request_uri})
 
 
-@auth.route("/google/login/callback")
+@auth.route("/google/login/callback", methods=["GET"])
 def callback():
     code = request.args.get("code")
     client = current_app.config["google_client"]
@@ -57,25 +60,37 @@ def callback():
     else:
         return "User email not available or not verified by Google.", 400
 
-    # Doesn't exist? Add it to the database.
-    if not UserController.get(users_email):
-        UserController.create(users_name, users_email, picture, "google")
+    user = UserController.get(users_email)
+    if not user:
+        user = UserController.create(users_name, users_email, picture, "google")
 
+    t_now = datetime.now(tz=timezone.utc)
+    t_exp = t_now + timedelta(days=1)
     # Create jwt tokens
     token = jwt.encode(
         payload={
-            "email": users_email,
-            "role": "user"
+            "sub": user["id"],
+            "role": "user",  # TODO: Get user role from db
+            "iss": "ApiTestingTool",
+            "iat": t_now,
+            "exp": t_exp
         },
         key=os.getenv("SECRET_KEY")
     )
     response = make_response(redirect('http://127.0.0.1:4200'))
+    # TODO: cookie exp
     response.set_cookie("auth", token, domain="127.0.0.1", httponly=True, secure=True)
     return response
 
 
-@auth.route("/logout")
+@auth.route("/logout", methods=["GET"])
 def logout():
     response = make_response(redirect('http://127.0.0.1:4200'))
     response.set_cookie("auth", "", expires=0, domain="127.0.0.1", httponly=True, secure=True)
     return response
+
+
+@auth.route("/profile", methods=["GET"])
+@login_required
+def profile():
+    return jsonify(g.user), 200

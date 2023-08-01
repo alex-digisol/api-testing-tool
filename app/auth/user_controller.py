@@ -12,12 +12,6 @@ class UserController(UserMixin):
         self.email = email
         self.profile_pic = profile_pic
 
-    def get_id(self):
-        try:
-            return str(self.email)
-        except AttributeError:
-            raise NotImplementedError("No `id` attribute - override `get_id`") from None
-
     @staticmethod
     def get(email):
         db = get_db()
@@ -28,6 +22,23 @@ class UserController(UserMixin):
             return None
 
         return {
+            "id": user.id, 
+            "name": user.name, 
+            "email": user.email, 
+            "profile_pic": user.profile_pic
+        }
+
+    @staticmethod
+    def get_by_id(id):
+        db = get_db()
+        sql = select(users).where(users.c.id == id)
+        user = db.execute(sql).fetchone()
+
+        if not user:
+            return None
+
+        return {
+            "id": user.id, 
             "name": user.name, 
             "email": user.email, 
             "profile_pic": user.profile_pic
@@ -48,3 +59,9 @@ class UserController(UserMixin):
         )
         result = db.execute(q_provider)
         db.commit()
+        return {
+            "id": result.inserted_primary_key[0],
+            "name": name,
+            "email": email,
+            "profile_pic": profile_pic
+        }

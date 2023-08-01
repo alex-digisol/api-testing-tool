@@ -1,7 +1,7 @@
 import os
 from oauthlib.oauth2 import WebApplicationClient
 from flask import Flask,render_template
-from flask_login import LoginManager
+
 
 from .database import init_db
 from .auth import GOOGLE_CLIENT_ID
@@ -12,13 +12,7 @@ def create_app() -> Flask:
     init_db()
     
     app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(64)
-
-    login_manager = LoginManager()
-    login_manager.init_app(app)
-
     app.config["google_client"] = WebApplicationClient(GOOGLE_CLIENT_ID)
-    # Flask-Login helper to retrieve a user from our db
-
 
     # Blueprints
     from .auth import auth
